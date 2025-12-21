@@ -1,106 +1,57 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import Peer, { MediaConnection } from 'peerjs';
-import { QRCodeSVG } from 'qrcode.react';
 import {
+  Lock,
   Mic,
   MicOff,
+  Monitor,
+  Moon,
+  RotateCcw,
   Video,
   VideoOff,
-  RotateCcw,
-  Monitor,
   Volume2,
-  Moon,
-  Lock,
 } from 'lucide-react';
-import { ConnectionStatus, PEER_CONFIG } from '../types';
-import { Button } from '../components/Button';
+import { QRCodeSVG } from 'qrcode.react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useP2PConnection } from '../hooks/useP2PConnection';
+import { ConnectionStatus } from '../types';
 import { requestWakeLock } from '../utils/wakeLock';
-import { LoadingOverlay } from '../components/LoadingOverlay';
 
 interface CameraModeProps {
   onBack: () => void;
 }
 
 export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
-  const [peerId, setPeerId] = useState<string | null>(null);
-  const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.INITIALIZING);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const {
+    peerId,
+    status,
+    localStream: stream,
+    remoteStream,
+    initLocalMedia,
+    setStatus,
+  } = useP2PConnection();
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isEcoMode, setIsEcoMode] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const incomingAudioRef = useRef<HTMLAudioElement>(null); // For parent's voice
-  const peerRef = useRef<Peer | null>(null);
-  const connectionRef = useRef<MediaConnection | null>(null);
 
   // Initialize Media and Peer
   useEffect(() => {
-    let localStream: MediaStream;
     let wakeLock: WakeLockSentinel | null = null;
 
     const init = async () => {
       try {
-        // 1. Get User Media
-        localStream = await navigator.mediaDevices.getUserMedia({
+        const local = await initLocalMedia({
           video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         });
 
-        setStream(localStream);
         if (videoRef.current) {
-          videoRef.current.srcObject = localStream;
+          videoRef.current.srcObject = local;
         }
 
-        // 2. Request Wake Lock
+        // Request Wake Lock
         wakeLock = await requestWakeLock();
-
-        // 3. Initialize Peer
-        const peer = new Peer(PEER_CONFIG);
-        peerRef.current = peer;
-
-        peer.on('open', (id) => {
-          console.log('My Peer ID:', id);
-          setPeerId(id);
-          setStatus(ConnectionStatus.WAITING_FOR_PEER);
-        });
-
-        peer.on('call', (call) => {
-          console.log('Incoming call...');
-          setStatus(ConnectionStatus.CONNECTING);
-
-          // Answer the call with our A/V stream
-          call.answer(localStream);
-          connectionRef.current = call;
-
-          // Receive audio from Monitor (Talk Back feature)
-          call.on('stream', (remoteStream) => {
-            console.log('Receiving audio from monitor');
-            if (incomingAudioRef.current) {
-              incomingAudioRef.current.srcObject = remoteStream;
-              incomingAudioRef.current.play().catch((e) => console.error('Audio play failed', e));
-            }
-          });
-
-          call.on('close', () => {
-            setStatus(ConnectionStatus.DISCONNECTED);
-            connectionRef.current = null;
-          });
-
-          // Wait a moment to confirm stability
-          setTimeout(() => setStatus(ConnectionStatus.CONNECTED), 1000);
-        });
-
-        peer.on('error', (err) => {
-          console.error(err);
-          setStatus(ConnectionStatus.ERROR);
-        });
-
-        peer.on('disconnected', () => {
-          if (status !== ConnectionStatus.CONNECTED) {
-            setStatus(ConnectionStatus.DISCONNECTED);
-          }
-        });
       } catch (err) {
         console.error('Failed to init camera mode', err);
         setStatus(ConnectionStatus.ERROR);
@@ -110,12 +61,19 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
     init();
 
     return () => {
-      localStream?.getTracks().forEach((track) => track.stop());
-      peerRef.current?.destroy();
+      // local stream and peer cleanup handled by hook, just release wake lock here
       wakeLock?.release();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Attach incoming remote stream (talk-back) to audio element
+  useEffect(() => {
+    if (incomingAudioRef.current && remoteStream) {
+      incomingAudioRef.current.srcObject = remoteStream;
+      incomingAudioRef.current.play().catch((e) => console.error('Audio play failed', e));
+    }
+  }, [remoteStream]);
 
   const toggleMute = () => {
     if (stream) {
