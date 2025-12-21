@@ -1,0 +1,8 @@
+{
+  "name": "Secure P2P Baby Monitor",
+  "description": "A secure, serverless baby monitor using WebRTC and QR pairing.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
