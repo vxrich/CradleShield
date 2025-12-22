@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Peer, { MediaConnection } from 'peerjs';
-import { ConnectionStatus, PEER_CONFIG } from '../types';
+import { ConnectionStatus, PEER_CONFIG } from '../../types';
 import { scanFrame } from '../services/ScannerService';
 import { requestWakeLock } from '../utils/wakeLock';
 
@@ -22,7 +22,9 @@ export const useMonitorLink = () => {
     const startScanning = async () => {
       if (!isScanning) return;
       try {
-        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        scanStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        });
         if (videoPreviewRef.current) {
           videoPreviewRef.current.srcObject = scanStream;
           videoPreviewRef.current.onloadedmetadata = () => requestAnimationFrame(tick);
@@ -42,7 +44,7 @@ export const useMonitorLink = () => {
     startScanning();
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      scanStream?.getTracks().forEach(t => t.stop());
+      scanStream?.getTracks().forEach((t) => t.stop());
     };
   }, [isScanning]);
 
@@ -53,26 +55,26 @@ export const useMonitorLink = () => {
 
     let micStream: MediaStream;
     try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        micStream.getAudioTracks().forEach(track => track.enabled = false);
-        setLocalAudioStream(micStream);
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStream.getAudioTracks().forEach((track) => (track.enabled = false));
+      setLocalAudioStream(micStream);
     } catch (e) {
-        micStream = new MediaStream();
+      micStream = new MediaStream();
     }
 
     const peer = new Peer(PEER_CONFIG);
     peerRef.current = peer;
 
     peer.on('open', () => {
-      const call = peer.call(targetPeerId, micStream); 
+      const call = peer.call(targetPeerId, micStream);
       connRef.current = call;
 
       call.on('stream', (stream) => {
         setRemoteStream(stream);
         setStatus(ConnectionStatus.CONNECTED);
         if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = stream;
-            remoteVideoRef.current.play().catch(console.error);
+          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current.play().catch(console.error);
         }
       });
 
@@ -83,11 +85,11 @@ export const useMonitorLink = () => {
   };
 
   const startTalking = () => {
-    if (localAudioStream) localAudioStream.getAudioTracks().forEach(t => t.enabled = true);
+    if (localAudioStream) localAudioStream.getAudioTracks().forEach((t) => (t.enabled = true));
   };
 
   const stopTalking = () => {
-    if (localAudioStream) localAudioStream.getAudioTracks().forEach(t => t.enabled = false);
+    if (localAudioStream) localAudioStream.getAudioTracks().forEach((t) => (t.enabled = false));
   };
 
   return {
@@ -99,6 +101,6 @@ export const useMonitorLink = () => {
     canvasRef,
     startTalking,
     stopTalking,
-    localAudioStream
+    localAudioStream,
   };
 };
