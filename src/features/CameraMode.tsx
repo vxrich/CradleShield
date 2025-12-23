@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Lock,
   Mic,
@@ -9,11 +11,9 @@ import {
   VideoOff,
   Volume2,
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import React, { useEffect, useRef, useState } from 'react';
-import { useP2PConnection } from '../hooks/useP2PConnection';
-import { ConnectionStatus } from '../types';
-import { requestWakeLock } from '../utils/wakeLock';
+import { ConnectionStatus } from '../../types';
+import { LoadingOverlay } from '../components/LoadingOverlay';
+import { useCameraLink } from '../hooks/useCameraLink';
 
 interface CameraModeProps {
   onBack: () => void;
@@ -23,182 +23,102 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
   const {
     peerId,
     status,
-    localStream: stream,
-    remoteStream,
-    initLocalMedia,
-    setStatus,
-  } = useP2PConnection();
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+    isMuted,
+    isVideoEnabled,
+    videoRef,
+    incomingAudioRef,
+    toggleMute,
+    toggleVideo,
+  } = useCameraLink();
+
   const [isEcoMode, setIsEcoMode] = useState(false);
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const incomingAudioRef = useRef<HTMLAudioElement>(null); // For parent's voice
-
-  // Initialize Media and Peer
-  useEffect(() => {
-    let wakeLock: WakeLockSentinel | null = null;
-
-    const init = async () => {
-      try {
-        const local = await initLocalMedia({
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-        });
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = local;
-        }
-
-        // Request Wake Lock
-        wakeLock = await requestWakeLock();
-      } catch (err) {
-        console.error('Failed to init camera mode', err);
-        setStatus(ConnectionStatus.ERROR);
-      }
-    };
-
-    init();
-
-    return () => {
-      // local stream and peer cleanup handled by hook, just release wake lock here
-      wakeLock?.release();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Attach incoming remote stream (talk-back) to audio element
-  useEffect(() => {
-    if (incomingAudioRef.current && remoteStream) {
-      incomingAudioRef.current.srcObject = remoteStream;
-      incomingAudioRef.current.play().catch((e) => console.error('Audio play failed', e));
-    }
-  }, [remoteStream]);
-
-  const toggleMute = () => {
-    if (stream) {
-      stream.getAudioTracks().forEach((t) => (t.enabled = !isMuted));
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const toggleVideo = () => {
-    if (stream) {
-      // We toggle the track enabled state instead of stopping it to keep connection alive
-      stream.getVideoTracks().forEach((t) => (t.enabled = !isVideoEnabled));
-      setIsVideoEnabled(!isVideoEnabled);
-    }
-  };
-
-  const restart = () => {
-    window.location.reload();
-  };
+  const restart = () => window.location.reload();
 
   return (
     <div className="relative flex h-full flex-col bg-black">
       {/* <LoadingOverlay status={status} onRetry={restart} /> */}
-
-      {/* Hidden Audio Element for Talk Back */}
       <audio ref={incomingAudioRef} autoPlay />
 
-      {/* ECO MODE OVERLAY (Simulate Screen Off) */}
       {isEcoMode && (
         <div
-          className="absolute inset-0 z-50 flex cursor-pointer touch-manipulation flex-col items-center justify-center bg-black"
+          className="absolute inset-0 z-50 flex cursor-pointer flex-col items-center justify-center bg-black"
           onClick={() => setIsEcoMode(false)}
         >
-          <div className="text-dark-800 flex animate-pulse flex-col items-center">
-            <Lock size={48} className="mb-4 opacity-20" />
-            <p className="text-sm font-medium opacity-20 select-none">Tap to wake screen</p>
-            <p className="mt-8 text-xs opacity-10 select-none">Monitoring Active</p>
+          <div className="text-dark-800 flex animate-pulse flex-col items-center opacity-20">
+            <Lock size={48} className="mb-4" />
+            <p className="text-sm">Tap to wake screen</p>
           </div>
         </div>
       )}
 
-      {/* Viewfinder */}
       <div className="relative flex flex-1 items-center justify-center overflow-hidden">
         <video
           ref={videoRef}
           autoPlay
-          muted // Always mute local preview to prevent feedback
+          muted
           playsInline
-          className={`h-full w-full object-cover transition-opacity ${!isVideoEnabled ? 'opacity-0' : 'opacity-100'}`}
+          className={`h-full w-full object-cover ${!isVideoEnabled ? 'opacity-0' : 'opacity-100'}`}
         />
 
-        {/* Privacy/Audio Only overlay */}
         {!isVideoEnabled && (
-          <div className="bg-dark-800 animate-in fade-in absolute inset-0 flex flex-col items-center justify-center text-slate-500 duration-300">
+          <div className="bg-dark-800 absolute inset-0 flex flex-col items-center justify-center">
             <Volume2 size={64} className="text-brand-500 mb-4 animate-pulse" />
             <p className="font-medium text-white">Audio Only Mode</p>
-            <p className="text-sm text-slate-400">Streaming audio to monitor...</p>
           </div>
         )}
 
-        {/* QR Code Overlay - Only show when waiting */}
         {status === ConnectionStatus.WAITING_FOR_PEER && peerId && (
           <div className="bg-dark-900/95 absolute inset-0 z-10 flex flex-col items-center justify-center p-8">
-            <div className="mb-6 rounded-2xl bg-white p-4 shadow-2xl">
-              <QRCodeSVG value={peerId} size={200} level="L" />
+            <div className="mb-6 rounded-2xl bg-white p-4">
+              <QRCodeSVG value={peerId} size={200} />
             </div>
-            <h2 className="mb-2 text-center text-2xl font-bold">Scan with Monitor</h2>
-            <p className="text-center text-sm text-slate-400">
-              Point the other device at this code to pair safely.
-            </p>
+            <h2 className="mb-2 text-2xl font-bold">Scan with Monitor</h2>
           </div>
         )}
       </div>
 
-      {/* Controls */}
-      <div className="bg-dark-900 z-20 rounded-t-3xl p-6 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+      <div className="bg-dark-900 z-20 rounded-t-3xl p-6 pb-8">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div
               className={`h-3 w-3 rounded-full ${status === ConnectionStatus.CONNECTED ? 'animate-pulse bg-green-500' : 'bg-yellow-500'}`}
             />
-            <span className="text-sm font-medium text-slate-300">
-              {status === ConnectionStatus.CONNECTED ? 'Live Streaming' : 'Ready to Pair'}
+            <span className="text-sm text-slate-300">
+              {status === ConnectionStatus.CONNECTED ? 'Streaming Live' : 'Waiting...'}
             </span>
           </div>
           <button
             onClick={() => setIsEcoMode(true)}
-            className="text-brand-500 flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold transition-colors hover:bg-slate-700"
+            className="text-brand-500 flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold"
           >
-            <Moon size={14} />
-            <span>Eco Mode</span>
+            <Moon size={14} /> Eco Mode
           </button>
         </div>
 
         <div className="grid grid-cols-4 gap-4">
           <button
             onClick={toggleMute}
-            className={`flex flex-col items-center gap-2 rounded-xl p-3 transition ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-slate-800 text-white'}`}
+            className={`flex flex-col items-center gap-2 rounded-xl p-3 ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-slate-800 text-white'}`}
           >
-            {isMuted ? <MicOff /> : <Mic />}
-            <span className="text-xs">Mic</span>
+            <Mic /> <span className="text-xs">Mic</span>
           </button>
-
           <button
             onClick={toggleVideo}
-            className={`flex flex-col items-center gap-2 rounded-xl p-3 transition ${!isVideoEnabled ? 'bg-brand-500 text-white' : 'bg-slate-800 text-slate-300'}`}
+            className={`flex flex-col items-center gap-2 rounded-xl p-3 ${!isVideoEnabled ? 'bg-brand-500 text-white' : 'bg-slate-800 text-white'}`}
           >
-            {!isVideoEnabled ? <VideoOff /> : <Video />}
-            <span className="text-xs">{!isVideoEnabled ? 'Audio Only' : 'Video On'}</span>
+            {!isVideoEnabled ? <VideoOff /> : <Video />} <span className="text-xs">Video</span>
           </button>
-
           <button
             onClick={restart}
-            className="flex flex-col items-center gap-2 rounded-xl bg-slate-800 p-3 text-white active:bg-slate-700"
+            className="flex flex-col items-center gap-2 rounded-xl bg-slate-800 p-3 text-white"
           >
-            <RotateCcw />
-            <span className="text-xs">Reset</span>
+            <RotateCcw /> <span className="text-xs">Reset</span>
           </button>
-
           <button
             onClick={onBack}
-            className="flex flex-col items-center gap-2 rounded-xl bg-slate-800 p-3 text-slate-400 active:bg-slate-700"
+            className="flex flex-col items-center gap-2 rounded-xl bg-slate-800 p-3 text-slate-400"
           >
-            <Monitor size={20} />
-            <span className="text-xs">Back</span>
+            <Monitor size={20} /> <span className="text-xs">Back</span>
           </button>
         </div>
       </div>

@@ -1,9 +1,9 @@
-import { Camera, Monitor, ShieldCheck } from 'lucide-react';
 import React, { useState } from 'react';
-import { Button } from './components/Button';
+import { AppMode } from '../types';
 import { CameraMode } from './features/CameraMode';
 import { MonitorMode } from './features/MonitorMode';
-import { AppMode } from './types';
+import { Button } from './components/Button';
+import { Camera, Monitor, ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<AppMode>(AppMode.SELECTION);

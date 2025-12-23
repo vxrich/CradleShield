@@ -1,0 +1,147 @@
+import { useState, useEffect, useRef } from 'react';
+import Peer, { MediaConnection } from 'peerjs';
+import { ConnectionStatus, PEER_CONFIG } from '../../types';
+import { scanFrame } from '../services/ScannerService';
+import { requestWakeLock } from '../utils/wakeLock';
+
+export const useMonitorLink = () => {
+  const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.IDLE);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [localAudioStream, setLocalAudioStream] = useState<MediaStream | null>(null);
+  const [isScanning, setIsScanning] = useState(true);
+
+  const videoPreviewRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const peerRef = useRef<Peer | null>(null);
+  const connRef = useRef<MediaConnection | null>(null);
+  const animationFrameRef = useRef<number>(0);
+  const fakeVideoTrackRef = useRef<MediaStreamTrack | null>(null);
+
+  useEffect(() => {
+    let scanStream: MediaStream;
+    const startScanning = async () => {
+      if (!isScanning) return;
+      try {
+        scanStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        });
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = scanStream;
+          videoPreviewRef.current.onloadedmetadata = () => requestAnimationFrame(tick);
+        }
+      } catch (err) {
+        setStatus(ConnectionStatus.ERROR);
+      }
+    };
+
+    const tick = () => {
+      if (!videoPreviewRef.current || !canvasRef.current || !isScanning) return;
+      const code = scanFrame(videoPreviewRef.current, canvasRef.current);
+      if (code) handleCodeFound(code);
+      else animationFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    startScanning();
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      scanStream?.getTracks().forEach((t) => t.stop());
+    };
+  }, [isScanning]);
+
+  const handleCodeFound = async (targetPeerId: string) => {
+    setIsScanning(false);
+    setStatus(ConnectionStatus.CONNECTING);
+    requestWakeLock();
+
+    let micStream: MediaStream;
+    try {
+      console.log('Gathering media devices...', await navigator.mediaDevices.enumerateDevices());
+
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStream.getAudioTracks().forEach((track) => (track.enabled = false));
+      setLocalAudioStream(micStream);
+    } catch (e) {
+      micStream = new MediaStream();
+    }
+
+    const peer = new Peer(PEER_CONFIG);
+    peerRef.current = peer;
+
+    peer.on('open', () => {
+      // If there is no video track, add a tiny enabled placeholder so the SDP includes a video m-line.
+
+      if (micStream.getVideoTracks().length === 0) {
+        try {
+          const canvas = document.createElement('canvas') as HTMLCanvasElement;
+          canvas.width = 1;
+          canvas.height = 1;
+          const fakeStream = canvas.captureStream();
+          const [fakeVideoTrack] = fakeStream.getVideoTracks();
+          if (fakeVideoTrack) {
+            // Keep the track enabled to improve negotiation reliability across browsers
+            fakeVideoTrack.enabled = true;
+            micStream.addTrack(fakeVideoTrack);
+            fakeVideoTrackRef.current = fakeVideoTrack;
+            console.log('Added placeholder video track to outgoing stream', fakeVideoTrack);
+          }
+        } catch (e) {
+          console.warn('Unable to create placeholder video track', e);
+        }
+      }
+
+      const call = peer.call(targetPeerId, micStream);
+      connRef.current = call;
+
+      //Ricezione dello stream A/V remoto
+      call.on('stream', (stream) => {
+        console.log('Receiving remote A/V stream...', stream);
+        console.log('Remote video tracks:', stream.getVideoTracks());
+        console.log('Remote audio tracks:', stream.getAudioTracks());
+
+        setRemoteStream(stream);
+        setStatus(ConnectionStatus.CONNECTED);
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current.play().catch(console.error);
+        }
+      });
+
+      call.on('close', () => {
+        setStatus(ConnectionStatus.DISCONNECTED);
+        // Cleanup placeholder video track if present
+        try {
+          if (fakeVideoTrackRef.current) {
+            fakeVideoTrackRef.current.stop();
+            micStream.removeTrack(fakeVideoTrackRef.current);
+            fakeVideoTrackRef.current = null;
+          }
+        } catch (e) {
+          console.warn('Error while cleaning up fake video track', e);
+        }
+      });
+    });
+
+    peer.on('error', () => setStatus(ConnectionStatus.ERROR));
+  };
+
+  const startTalking = () => {
+    if (localAudioStream) localAudioStream.getAudioTracks().forEach((t) => (t.enabled = true));
+  };
+
+  const stopTalking = () => {
+    if (localAudioStream) localAudioStream.getAudioTracks().forEach((t) => (t.enabled = false));
+  };
+
+  return {
+    status,
+    remoteStream,
+    isScanning,
+    videoPreviewRef,
+    remoteVideoRef,
+    canvasRef,
+    startTalking,
+    stopTalking,
+    localAudioStream,
+  };
+};

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConnectionStatus } from '../types';
+import { ConnectionStatus } from '../../types';
 import { Loader2, WifiOff } from 'lucide-react';
 
 interface LoadingOverlayProps {
