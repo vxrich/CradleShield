@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AppMode } from '../types';
 import { CameraMode } from './features/CameraMode';
 import { MonitorMode } from './features/MonitorMode';
-import { Button } from './components/Button';
+import { Button } from './components';
 import { Camera, Monitor, ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -53,7 +53,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="selection:bg-brand-500/30 h-[100dvh] w-full overflow-hidden font-sans text-white antialiased">
+    <div className="selection:bg-brand-500/30 h-dvh w-full overflow-hidden font-sans text-white antialiased">
       {mode === AppMode.SELECTION && <SelectionScreen />}
       {mode === AppMode.CAMERA && <CameraMode onBack={() => setMode(AppMode.SELECTION)} />}
       {mode === AppMode.MONITOR && <MonitorMode onBack={() => setMode(AppMode.SELECTION)} />}

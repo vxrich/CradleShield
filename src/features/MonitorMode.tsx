@@ -1,17 +1,6 @@
+import { Moon, Music2, ScanLine } from 'lucide-react';
 import React, { useState } from 'react';
-import { ConnectionStatus } from '../../types';
-import { LoadingOverlay } from '../components/LoadingOverlay';
-import {
-  ScanLine,
-  Volume2,
-  VolumeX,
-  ArrowLeft,
-  Moon,
-  Mic,
-  Music2,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
+import { LoadingOverlay, MonitorControls } from '../components';
 import { useMonitorLink } from '../hooks/useMonitorLink';
 
 interface MonitorModeProps {
@@ -32,17 +21,7 @@ export const MonitorMode: React.FC<MonitorModeProps> = ({ onBack }) => {
 
   const [isMuted, setIsMuted] = useState(false);
   const [dimMode, setDimMode] = useState(false);
-  const [isTalking, setIsTalking] = useState(false);
   const [isNightVision, setIsNightVision] = useState(false);
-
-  const handleTalkStart = () => {
-    setIsTalking(true);
-    startTalking();
-  };
-  const handleTalkEnd = () => {
-    setIsTalking(false);
-    stopTalking();
-  };
 
   return (
     <div
@@ -66,7 +45,7 @@ export const MonitorMode: React.FC<MonitorModeProps> = ({ onBack }) => {
             </div>
             <canvas ref={canvasRef} className="hidden" />
           </div>
-          <div className="bg-dark-900 z-20 -mt-6 rounded-t-3xl p-8 text-center">
+          <div className="glass3d mx-auto p-6 text-center">
             <h2 className="mb-2 text-2xl font-bold text-white">Scan Camera QR</h2>
             <button onClick={onBack} className="mt-4 text-slate-500">
               Cancel
@@ -102,48 +81,17 @@ export const MonitorMode: React.FC<MonitorModeProps> = ({ onBack }) => {
             )}
           </div>
 
-          <div className={`p-6 ${dimMode ? 'opacity-20' : 'bg-dark-900'}`}>
-            <div className="mb-6 flex justify-center">
-              <button
-                onMouseDown={handleTalkStart}
-                onMouseUp={handleTalkEnd}
-                onTouchStart={handleTalkStart}
-                onTouchEnd={handleTalkEnd}
-                className={`flex h-16 w-full max-w-xs items-center justify-center gap-3 rounded-2xl font-bold transition-all ${isTalking ? 'bg-brand-500 scale-95 text-white' : 'bg-slate-800 text-slate-300'}`}
-              >
-                {isTalking && (
-                  <span className="bg-brand-500 absolute inset-0 animate-ping rounded-2xl opacity-20"></span>
-                )}
-                <Mic /> {isTalking ? 'Talking...' : 'Hold to Talk'}
-              </button>
-            </div>
-            <div className="grid grid-cols-4 gap-3">
-              <button
-                onClick={onBack}
-                className="flex items-center justify-center rounded-xl bg-slate-800 p-4 text-slate-300"
-              >
-                <ArrowLeft />
-              </button>
-              <button
-                onClick={() => setIsNightVision(!isNightVision)}
-                className={`flex items-center justify-center rounded-xl p-4 transition ${isNightVision ? 'bg-green-500 text-white' : 'bg-slate-800 text-slate-300'}`}
-              >
-                {isNightVision ? <Eye /> : <EyeOff />}
-              </button>
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className={`flex items-center justify-center rounded-xl p-4 transition ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-slate-800 text-white'}`}
-              >
-                {isMuted ? <VolumeX /> : <Volume2 />}
-              </button>
-              <button
-                onClick={() => setDimMode(!dimMode)}
-                className={`flex items-center justify-center rounded-xl p-4 transition ${dimMode ? 'bg-brand-500 text-white' : 'bg-slate-800 text-slate-300'}`}
-              >
-                <Moon />
-              </button>
-            </div>
-          </div>
+          <MonitorControls
+            onBack={onBack}
+            isNightVision={isNightVision}
+            onToggleNightVision={() => setIsNightVision(!isNightVision)}
+            isMuted={isMuted}
+            onToggleMute={() => setIsMuted(!isMuted)}
+            dimMode={dimMode}
+            onToggleDimMode={() => setDimMode(!dimMode)}
+            startTalking={startTalking}
+            stopTalking={stopTalking}
+          />
         </>
       )}
     </div>

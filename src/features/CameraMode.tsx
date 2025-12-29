@@ -1,18 +1,8 @@
-import React, { useState } from 'react';
+import { Lock, Volume2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import {
-  Lock,
-  Mic,
-  MicOff,
-  Monitor,
-  Moon,
-  RotateCcw,
-  Video,
-  VideoOff,
-  Volume2,
-} from 'lucide-react';
+import React, { useState } from 'react';
 import { ConnectionStatus } from '../../types';
-import { LoadingOverlay } from '../components/LoadingOverlay';
+import { CameraControls } from '../components';
 import { useCameraLink } from '../hooks/useCameraLink';
 
 interface CameraModeProps {
@@ -35,7 +25,7 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
   const restart = () => window.location.reload();
 
   return (
-    <div className="relative flex h-full flex-col bg-black">
+    <div className="relative flex h-full bg-black">
       {/* <LoadingOverlay status={status} onRetry={restart} /> */}
       <audio ref={incomingAudioRef} autoPlay />
 
@@ -77,51 +67,16 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
         )}
       </div>
 
-      <div className="bg-dark-900 z-20 rounded-t-3xl p-6 pb-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div
-              className={`h-3 w-3 rounded-full ${status === ConnectionStatus.CONNECTED ? 'animate-pulse bg-green-500' : 'bg-yellow-500'}`}
-            />
-            <span className="text-sm text-slate-300">
-              {status === ConnectionStatus.CONNECTED ? 'Streaming Live' : 'Waiting...'}
-            </span>
-          </div>
-          <button
-            onClick={() => setIsEcoMode(true)}
-            className="text-brand-500 flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-bold"
-          >
-            <Moon size={14} /> Eco Mode
-          </button>
-        </div>
-
-        <div className="grid grid-cols-4 gap-4">
-          <button
-            onClick={toggleMute}
-            className={`flex flex-col items-center gap-2 rounded-xl p-3 ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-slate-800 text-white'}`}
-          >
-            <Mic /> <span className="text-xs">Mic</span>
-          </button>
-          <button
-            onClick={toggleVideo}
-            className={`flex flex-col items-center gap-2 rounded-xl p-3 ${!isVideoEnabled ? 'bg-brand-500 text-white' : 'bg-slate-800 text-white'}`}
-          >
-            {!isVideoEnabled ? <VideoOff /> : <Video />} <span className="text-xs">Video</span>
-          </button>
-          <button
-            onClick={restart}
-            className="flex flex-col items-center gap-2 rounded-xl bg-slate-800 p-3 text-white"
-          >
-            <RotateCcw /> <span className="text-xs">Reset</span>
-          </button>
-          <button
-            onClick={onBack}
-            className="flex flex-col items-center gap-2 rounded-xl bg-slate-800 p-3 text-slate-400"
-          >
-            <Monitor size={20} /> <span className="text-xs">Back</span>
-          </button>
-        </div>
-      </div>
+      <CameraControls
+        status={status}
+        isMuted={isMuted}
+        isVideoEnabled={isVideoEnabled}
+        onToggleMute={toggleMute}
+        onToggleVideo={toggleVideo}
+        onRestart={restart}
+        onBack={onBack}
+        onEcoModeToggle={() => setIsEcoMode(true)}
+      />
     </div>
   );
 };

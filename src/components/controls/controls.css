@@ -1,0 +1,22 @@
+@reference '../../index.css';
+
+@layer components {
+  .glass3d {
+    @apply shadow-glass-3d absolute right-0 bottom-0 left-0 z-50 mx-auto w-full max-w-2xl rounded-t-3xl p-6 pb-8;
+
+    /* visual effects via Tailwind utilities */
+    @apply bg-[hsl(189_80%10%/0.2)] bg-[url('https://www.transparenttextures.com/patterns/egg-shell.png')] bg-repeat backdrop-blur-[32px] backdrop-brightness-[0.85] backdrop-saturate-[2.5];
+  }
+
+  .glass3d::before {
+    @apply pointer-events-none absolute inset-0 z-3 overflow-hidden rounded-[inherit] bg-[url('https://www.transparenttextures.com/patterns/egg-shell.png')] bg-repeat opacity-20;
+  }
+
+  .glass3d::after {
+    @apply inset-shadow-glass-3d pointer-events-none absolute inset-0 z-5 overflow-hidden rounded-[inherit];
+  }
+
+  .glass3d > * {
+    @apply relative z-6 w-full max-w-2xl rounded-t-3xl p-6 pb-8;
+  }
+}

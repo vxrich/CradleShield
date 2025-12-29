@@ -1,7 +1,7 @@
 {
   "name": "secure-p2p-baby-monitor",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,16 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@quasar/extras": "^1.17.0",
     "@tailwindcss/vite": "^4.1.18",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.562.0",
     "peerjs": "^1.5.5",
     "qrcode.react": "^4.2.0",
+    "quasar": "^2.18.6",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
+    "@quasar/vite-plugin": "^1.10.0",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^8.56.0",
@@ -27,9 +30,9 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "eslint-plugin-tailwindcss": "^3.14.2",
     "husky": "9.1.7",
-    "postcss-import": "^16.1.1",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "0.6.11",
+    "sass-embedded": "^1.93.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-mkcert": "^1.17.9"
