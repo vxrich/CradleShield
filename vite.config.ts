@@ -1,4 +1,3 @@
-import { quasar } from '@quasar/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -12,7 +11,7 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: '0.0.0.0',
     },
-    plugins: [react(), tailwindcss(), mkcert(), quasar()],
+    plugins: [react(), tailwindcss(), mkcert()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

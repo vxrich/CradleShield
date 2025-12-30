@@ -1,13 +1,16 @@
 # BabyGuard 🚼🔒
 
-**Secure P2P Baby Monitor** — Un'app web che crea una connessione diretta peer-to-peer (WebRTC) tra due dispositivi per monitorare un bambino senza server, registrazioni o iscrizioni.
+**Secure P2P Baby Monitor** — Un'app web che crea una connessione diretta peer-to-peer (WebRTC) tra
+due dispositivi per monitorare un bambino senza server, registrazioni o iscrizioni.
 
 ---
 
 ## ✨ Caratteristiche principali
 
-- Connessione **P2P** diretta tramite PeerJS (WebRTC) — nessun server centrale per lo streaming dei dati.
-- Accoppiamento sicuro via **QR code**: la camera mostra un QR contenente il Peer ID; il monitor lo scansiona per connettersi.
+- Connessione **P2P** diretta tramite PeerJS (WebRTC) — nessun server centrale per lo streaming dei
+  dati.
+- Accoppiamento sicuro via **QR code**: la camera mostra un QR contenente il Peer ID; il monitor lo
+  scansiona per connettersi.
 - Audio bidirezionale (talk-back): tieni premuto per parlare dal monitor verso la camera.
 - Modalità **Eco** (schermo spento simulato), **Audio-only**, e indicatori di connessione.
 - Funzionalità pensate per mobile: risveglio schermo (Wake Lock) e interfaccia touch-friendly.
@@ -17,9 +20,12 @@
 ## 🧭 Come funziona (breve)
 
 1. Avvia l'app su due dispositivi (browser moderno su HTTPS o localhost).
-2. Sul dispositivo che funge da **Camera**, consenti accesso a **camera + microfono**: verrà generato un QR contenente il Peer ID.
-3. Sul dispositivo che funge da **Monitor**, scansiona il QR; il Monitor apre una chiamata WebRTC verso la Camera.
-4. Lo stream video/audio passa direttamente tra i due dispositivi (STUN servers usati per la discovery; nessun server riceve lo stream).
+2. Sul dispositivo che funge da **Camera**, consenti accesso a **camera + microfono**: verrà
+   generato un QR contenente il Peer ID.
+3. Sul dispositivo che funge da **Monitor**, scansiona il QR; il Monitor apre una chiamata WebRTC
+   verso la Camera.
+4. Lo stream video/audio passa direttamente tra i due dispositivi (STUN servers usati per la
+   discovery; nessun server riceve lo stream).
 
 ---
 
@@ -41,6 +47,39 @@ Build per produzione:
 npm run build
 npm run preview
 ```
+
+---
+
+## 📱 Esecuzione in Capacitor (opzionale)
+
+Capacitor per impostazione predefinita carica le risorse web locali (il contenuto di `dist`). Questo
+significa che l'app wrapper non punta a un URL remoto ma serve i file locali della build.
+
+- Per iniziare (installare Capacitor CLI e core):
+
+```bash
+npm install
+npm install --save-dev @capacitor/cli
+npm install @capacitor/core
+npx cap init "BabyGuard" com.secure.p2p.babyguard --web-dir=dist
+```
+
+- Copia le risorse web nella piattaforma nativa e aprila:
+
+```bash
+npm run build
+npm run cap:copy
+npm run cap:open:android
+# oppure
+npm run cap:open:ios
+```
+
+- Se vuoi che la WebView punti al server di sviluppo (live reload) durante lo sviluppo, imposta
+  `server.url` nella `capacitor.config` o usa `npx cap copy` insieme a Vite dev server. Per una app
+  destinata alla produzione, **non** impostare `server.url` e lascia che Capacitor serva i file da
+  `dist`.
+
+---
 
 ---
 
@@ -69,10 +108,13 @@ export const PEER_CONFIG = {
 ## 📱 Uso
 
 - Camera: consenti camera e microfono; condividi il QR generato.
-- Monitor: consenti accesso alla fotocamera per scansionare il QR; tieni premuto il tasto "Hold to Talk" per parlare.
+- Monitor: consenti accesso alla fotocamera per scansionare il QR; tieni premuto il tasto "Hold to
+  Talk" per parlare.
 
 Note:
-- Alcuni browser bloccano l'audio in autoplay: premi un tasto se l'audio remoto non parte automaticamente.
+
+- Alcuni browser bloccano l'audio in autoplay: premi un tasto se l'audio remoto non parte
+  automaticamente.
 - L'app funziona meglio su versioni aggiornate di Chrome/Edge/Firefox/Safari mobile.
 
 ---
@@ -80,8 +122,10 @@ Note:
 ## 🔐 Privacy & Sicurezza
 
 - I dati (video/audio) vengono trasmessi **direttamente** tra i due peer via WebRTC.
-- Vengono usati solo server STUN per la discovery ICE; **nessun server centrale memorizza** lo stream.
-- Se hai esigenze di resilienza in reti restrittive, configura un server TURN (potrebbe passare lo stream attraverso il provider TURN).
+- Vengono usati solo server STUN per la discovery ICE; **nessun server centrale memorizza** lo
+  stream.
+- Se hai esigenze di resilienza in reti restrittive, configura un server TURN (potrebbe passare lo
+  stream attraverso il provider TURN).
 - Non forzare l'uso su reti non fidate senza valutare le implicazioni di rete.
 
 ---
@@ -100,7 +144,8 @@ Note:
 ## 🛠️ Contribuire
 
 - Apri un issue per bug o feature.
-- PR benvenute: mantieni lo stile di codice (Prettier + ESLint configurati) e scrivi una breve descrizione delle modifiche.
+- PR benvenute: mantieni lo stile di codice (Prettier + ESLint configurati) e scrivi una breve
+  descrizione delle modifiche.
 
 ---
 
