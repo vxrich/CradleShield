@@ -10,8 +10,9 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      allowedHosts: ['.ngrok-free.app', 'localhost'],
     },
-    plugins: [react(), tailwindcss(), mkcert()],
+    plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

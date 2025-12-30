@@ -3,6 +3,7 @@ import Peer, { MediaConnection } from 'peerjs';
 import { ConnectionStatus, PEER_CONFIG } from '../../types';
 import { scanFrame } from '../services/ScannerService';
 import { requestWakeLock } from '../utils/wakeLock';
+import { ensureAVPermissions } from '../utils/ensureAVPermissions';
 
 export const useMonitorLink = () => {
   const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.IDLE);
@@ -23,6 +24,10 @@ export const useMonitorLink = () => {
     const startScanning = async () => {
       if (!isScanning) return;
       try {
+        // Request permissions first on native platforms
+        const allowed = await ensureAVPermissions();
+        if (!allowed) throw new Error('Camera permission denied');
+
         scanStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' },
         });
@@ -31,6 +36,7 @@ export const useMonitorLink = () => {
           videoPreviewRef.current.onloadedmetadata = () => requestAnimationFrame(tick);
         }
       } catch (err) {
+        console.error(err);
         setStatus(ConnectionStatus.ERROR);
       }
     };

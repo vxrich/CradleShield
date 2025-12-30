@@ -81,6 +81,33 @@ npm run cap:open:ios
 
 ---
 
+### Permessi (camera & microfono)
+
+Per funzionare correttamente su dispositivi nativi, l'app richiede permessi **Camera** e
+**Microphone**.
+
+- **Android**: aggiungi nel file `android/app/src/main/AndroidManifest.xml` le seguenti righe (già
+  aggiunte nel progetto):
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+```
+
+- **iOS**: quando aggiungi la piattaforma iOS, assicurati di modificare il `Info.plist` e aggiungere
+  le voci seguenti (sostituisci il testo con una descrizione appropriata):
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>BabyGuard needs access to the camera to scan QR codes and stream video.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>BabyGuard needs access to the microphone for audio streaming.</string>
+```
+
+- **Runtime**: il codice dell'app ora chiama un helper che, su piattaforme native, prova a
+  richiedere i permessi nativi prima di invocare `getUserMedia` per prevenire fallimenti su WebView
+  native.
+
 ---
 
 ## ⚙️ Configurazione

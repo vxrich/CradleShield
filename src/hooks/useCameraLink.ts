@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
 import Peer, { MediaConnection } from 'peerjs';
+import { useEffect, useRef, useState } from 'react';
 import { ConnectionStatus, PEER_CONFIG } from '../../types';
+import { ensureAVPermissions } from '../utils/ensureAVPermissions';
 import { requestWakeLock } from '../utils/wakeLock';
 
 export const useCameraLink = () => {
@@ -22,18 +23,22 @@ export const useCameraLink = () => {
     const init = async () => {
       try {
         console.log('Gathering media devices...', await navigator.mediaDevices.enumerateDevices());
+
+        // On native wrappers (Capacitor) we should explicitly request runtime permissions
+        // before calling getUserMedia so the WebView has the required access.
+        const allowed = await ensureAVPermissions();
+        if (!allowed) throw new Error('Camera / microphone permissions denied');
+
         // Garantiamo che video e audio siano catturati subito
         localStream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            // deviceId: '04ed77965f9da94d536ed2286f5033a5b7b6dd5536358ec84ebaa013fd3d067a',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
             facingMode: 'environment',
           },
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
-            // deviceId: 'ab0206bd2430e38551120c206cdcc5fc7714b5ab3c06deade6d92dab341d474f',
           },
         });
 
