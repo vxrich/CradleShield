@@ -538,6 +538,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@mozartec/capacitor-microphone@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@mozartec/capacitor-microphone/-/capacitor-microphone-7.1.0.tgz#65b400f847b9ac8cf5bf08a58ddca53c466062c6"
+  integrity sha512-7adiK4UKGOPQbKbPlFNLFFT756EwTv8viFlU0FDLqxzDsMWIIk6+I3RWMhhgQPPIJrPxYS4Wf9O6phtRfmcTnw==
+
 "@msgpack/msgpack@^2.8.0":
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/@msgpack/msgpack/-/msgpack-2.8.0.tgz#4210deb771ee3912964f14a15ddfb5ff877e70b9"

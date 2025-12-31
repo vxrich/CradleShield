@@ -1,5 +1,6 @@
 import { Camera } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
+import { Microphone } from '@mozartec/capacitor-microphone';
 
 /**
  * Ensure camera & microphone permissions are granted when running in native wrappers.
@@ -21,6 +22,15 @@ export async function ensureAVPermissions(): Promise<boolean> {
     } catch (e) {
       // Some Capacitor/Android flavors may not support string-requests; ignore and continue
       console.warn('Camera permission request failed (fallback will be used):', e);
+    }
+
+    try {
+      await Microphone.requestPermissions();
+
+      if (!(await Microphone.checkPermissions())) return false;
+    } catch (e) {
+      // Some Capacitor/Android flavors may not support string-requests; ignore and continue
+      console.warn('Microphone permission request failed (fallback will be used):', e);
     }
 
     return true;

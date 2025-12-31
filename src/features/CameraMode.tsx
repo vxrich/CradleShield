@@ -42,13 +42,15 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
       )}
 
       <div className="relative flex flex-1 items-center justify-center overflow-hidden">
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          className={`h-full w-full object-cover ${!isVideoEnabled ? 'opacity-0' : 'opacity-100'}`}
-        />
+        {videoRef && (
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className={`h-full w-full object-cover ${!isVideoEnabled ? 'opacity-0' : 'opacity-100'}`}
+          />
+        )}
 
         {!isVideoEnabled && (
           <div className="bg-dark-800 absolute inset-0 flex flex-col items-center justify-center">
@@ -62,21 +64,30 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
             <div className="mb-6 rounded-2xl bg-white p-4">
               <QRCodeSVG value={peerId} size={200} />
             </div>
-            <h2 className="mb-2 text-2xl font-bold">Scan with Monitor</h2>
           </div>
         )}
       </div>
 
-      <CameraControls
-        status={status}
-        isMuted={isMuted}
-        isVideoEnabled={isVideoEnabled}
-        onToggleMute={toggleMute}
-        onToggleVideo={toggleVideo}
-        onRestart={restart}
-        onBack={onBack}
-        onEcoModeToggle={() => setIsEcoMode(true)}
-      />
+      {status === ConnectionStatus.CONNECTED && (
+        <CameraControls
+          status={status}
+          isMuted={isMuted}
+          isVideoEnabled={isVideoEnabled}
+          onToggleMute={toggleMute}
+          onToggleVideo={toggleVideo}
+          onRestart={restart}
+          onBack={onBack}
+          onEcoModeToggle={() => setIsEcoMode(true)}
+        />
+      )}
+      {status === ConnectionStatus.WAITING_FOR_PEER && (
+        <div className="glass3d mx-auto p-6 text-center">
+          <h2 className="mb-2 text-2xl font-bold text-white">Scan with Monitor</h2>
+          <button onClick={onBack} className="mt-4 text-slate-500">
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   );
 };
