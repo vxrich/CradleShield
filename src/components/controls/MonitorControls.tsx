@@ -1,5 +1,6 @@
+import { ArrowLeft, Eye, EyeOff, Mic, Moon, Volume2, VolumeX } from 'lucide-react';
 import React, { useState } from 'react';
-import { ArrowLeft, Moon, Mic, Music2, Volume2, VolumeX, Eye, EyeOff } from 'lucide-react';
+import { Button } from '../index';
 import './controls.css';
 
 interface MonitorControlsProps {
@@ -37,43 +38,49 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
   };
 
   return (
-    <div className={`glass3d ${dimMode ? 'opacity-20' : ''}`}>
-      <div className="talk-area">
-        <button
-          onMouseDown={handleTalkStart}
-          onMouseUp={handleTalkEnd}
-          onTouchStart={handleTalkStart}
-          onTouchEnd={handleTalkEnd}
-          className={`talk-button ${isTalking ? 'talk-button--active' : ''}`}
+    <div
+      className={`glass3d mx-auto w-full max-w-2xl rounded-t-3xl p-6 pb-8 ${dimMode ? 'opacity-20' : ''}`}
+    >
+      <Button
+        onMouseDown={handleTalkStart}
+        onMouseUp={handleTalkEnd}
+        onTouchStart={handleTalkStart}
+        onTouchEnd={handleTalkEnd}
+        className={`mb-2 bg-slate-800/40 p-3 text-white ${isTalking ? '' : ''}`}
+        fullWidth
+        icon={<Mic />}
+      >
+        {isTalking ? 'Talking...' : 'Hold to Talk'}
+      </Button>
+      <div className="grid grid-cols-4 gap-4">
+        <Button
+          onClick={onBack}
+          icon={<ArrowLeft />}
+          className="flex-col bg-slate-800/40 p-3 text-white"
         >
-          {isTalking && (
-            <span className="bg-brand-500 absolute inset-0 animate-ping rounded-2xl opacity-20"></span>
-          )}
-          <Mic /> {isTalking ? 'Talking...' : 'Hold to Talk'}
-        </button>
-      </div>
-      <div className="monitor-grid">
-        <button onClick={onBack} className="monitor-button monitor-button--default">
-          <ArrowLeft />
-        </button>
-        <button
+          <span className="text-xs">Back</span>
+        </Button>
+        <Button
           onClick={onToggleNightVision}
-          className={`monitor-button ${isNightVision ? 'monitor-button--night-active' : 'monitor-button--default'}`}
+          className={`flex-col p-3 ${isNightVision ? 'bg-brand-500 text-white' : 'bg-slate-800/40 text-white'}`}
+          icon={isNightVision ? <Eye /> : <EyeOff />}
         >
-          {isNightVision ? <Eye /> : <EyeOff />}
-        </button>
-        <button
+          <span className="text-xs">Night vision</span>
+        </Button>
+        <Button
           onClick={onToggleMute}
-          className={`monitor-button ${isMuted ? 'monitor-button--mute-active' : 'monitor-button--muted-default'}`}
+          className={`flex-col p-3 ${isMuted ? 'bg-brand-500 text-white' : 'bg-slate-800/40 text-white'}`}
+          icon={isMuted ? <VolumeX /> : <Volume2 />}
         >
-          {isMuted ? <VolumeX /> : <Volume2 />}
-        </button>
-        <button
+          <span className="text-xs">Mute</span>
+        </Button>
+        <Button
           onClick={onToggleDimMode}
-          className={`monitor-button ${dimMode ? 'monitor-button--dim-active' : 'monitor-button--default'}`}
+          className={`flex-col p-3 ${dimMode ? 'bg-brand-500 text-white' : 'bg-slate-800/40 text-white'}`}
+          icon={<Moon />}
         >
-          <Moon />
-        </button>
+          <span className="text-xs">Dim mode</span>
+        </Button>
       </div>
     </div>
   );
