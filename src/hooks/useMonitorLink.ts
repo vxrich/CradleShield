@@ -124,7 +124,6 @@ export const useMonitorLink = () => {
           remoteVideoRef.current.srcObject = stream;
           remoteVideoRef.current.play().catch(console.error);
         }
-        call.answer(micStream);
       });
 
       call.on('close', () => {

@@ -1,9 +1,9 @@
+import { Camera, Monitor } from 'lucide-react';
 import React, { useState } from 'react';
 import { AppMode } from '../types';
+import { Button } from './components';
 import { CameraMode } from './features/CameraMode';
 import { MonitorMode } from './features/MonitorMode';
-import { Button } from './components';
-import { Camera, Monitor, ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<AppMode>(AppMode.SELECTION);
@@ -12,7 +12,7 @@ const App: React.FC = () => {
     <div className="bg-dark-900 animate-in fade-in zoom-in flex h-full flex-col items-center justify-center p-6 duration-500">
       <div className="mb-12 text-center">
         <div className="bg-brand-500/10 text-brand-500 mx-auto mb-6 flex items-center justify-center rounded-3xl">
-          <img src="public/favicon.png" alt="BabyGuard Icon" className="size-36" />
+          <img src="/favicon.png" alt="BabyGuard Icon" className="size-36" />
         </div>
         <h1 className="mb-2 text-4xl font-black tracking-tight text-white">
           Baby<span className="text-brand-500">Guard</span>
