@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'BabyGuard',
   webDir: 'dist',
   server: {
-    url: 'https://6efc7011847a.ngrok-free.app',
+    url: 'https://ee84a914f4ef.ngrok-free.app',
     androidScheme: 'https',
   },
   // NOTE: Do NOT set `server.url` here if you want the native wrapper to

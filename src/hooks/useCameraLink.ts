@@ -15,6 +15,8 @@ export const useCameraLink = () => {
   const incomingAudioRef = useRef<HTMLAudioElement>(null);
   const peerRef = useRef<Peer | null>(null);
   const connectionRef = useRef<MediaConnection | null>(null);
+  const audioSenderRef = useRef<RTCRtpSender | null>(null);
+  const videoSenderRef = useRef<RTCRtpSender | null>(null);
 
   useEffect(() => {
     let localStream: MediaStream;
@@ -66,6 +68,24 @@ export const useCameraLink = () => {
           conn.answer(localStream);
           connectionRef.current = conn;
 
+          // Try to capture underlying RTCRtpSenders so we can truly stop sending without renegotiation
+          try {
+            const pc: RTCPeerConnection | undefined = (conn as any).peerConnection;
+            if (pc && pc.getSenders) {
+              const senders = pc.getSenders();
+              audioSenderRef.current =
+                senders.find((s) => s.track && s.track.kind === 'audio') || null;
+              videoSenderRef.current =
+                senders.find((s) => s.track && s.track.kind === 'video') || null;
+              console.log('Captured RTCRtpSenders', {
+                audio: !!audioSenderRef.current,
+                video: !!videoSenderRef.current,
+              });
+            }
+          } catch (e) {
+            console.warn('Unable to capture RTCRtpSenders', e);
+          }
+
           conn.on('stream', (remoteStream) => {
             console.log('Receiving mic remote stream...', remoteStream);
             if (incomingAudioRef.current) {
@@ -74,7 +94,11 @@ export const useCameraLink = () => {
             }
           });
 
-          conn.on('close', () => setStatus(ConnectionStatus.DISCONNECTED));
+          conn.on('close', () => {
+            setStatus(ConnectionStatus.DISCONNECTED);
+            audioSenderRef.current = null;
+            videoSenderRef.current = null;
+          });
           setTimeout(() => setStatus(ConnectionStatus.CONNECTED), 1000);
         });
 
@@ -97,18 +121,52 @@ export const useCameraLink = () => {
     };
   }, []);
 
-  const toggleMute = () => {
-    if (stream) {
+  const toggleMute = async () => {
+    if (!stream) return;
+    const audioTrack = stream.getAudioTracks()[0] || null;
+    const sender = audioSenderRef.current;
+
+    if (sender && typeof sender.replaceTrack === 'function') {
+      try {
+        if (!isMuted) {
+          await sender.replaceTrack(null);
+        } else {
+          await sender.replaceTrack(audioTrack);
+        }
+      } catch (e) {
+        console.warn('replaceTrack failed for audio sender, falling back to enabled toggle', e);
+        if (audioTrack) audioTrack.enabled = isMuted;
+      }
+    } else {
+      // Fallback to toggling enabled
       stream.getAudioTracks().forEach((t) => (t.enabled = !isMuted));
-      setIsMuted(!isMuted);
     }
+
+    setIsMuted(!isMuted);
   };
 
-  const toggleVideo = () => {
-    if (stream) {
+  const toggleVideo = async () => {
+    if (!stream) return;
+    const videoTrack = stream.getVideoTracks()[0] || null;
+    const sender = videoSenderRef.current;
+
+    if (sender && typeof sender.replaceTrack === 'function') {
+      try {
+        if (isVideoEnabled) {
+          await sender.replaceTrack(null);
+        } else {
+          await sender.replaceTrack(videoTrack);
+        }
+      } catch (e) {
+        console.warn('replaceTrack failed for video sender, falling back to enabled toggle', e);
+        if (videoTrack) videoTrack.enabled = !isVideoEnabled;
+      }
+    } else {
+      // Fallback to toggling enabled
       stream.getVideoTracks().forEach((t) => (t.enabled = !isVideoEnabled));
-      setIsVideoEnabled(!isVideoEnabled);
     }
+
+    setIsVideoEnabled(!isVideoEnabled);
   };
 
   return {

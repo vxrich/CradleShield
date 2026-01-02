@@ -1,4 +1,4 @@
-import { ArrowLeft, Mic, Moon, Video, VideoOff } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, Moon, Video, VideoOff } from 'lucide-react';
 import React from 'react';
 import { ConnectionStatus } from '../../../types';
 import { Button } from '../index';
@@ -49,7 +49,7 @@ export const CameraControls: React.FC<CameraControlsProps> = ({
         <Button
           onClick={onToggleMute}
           className={`flex-col p-3 ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-slate-800/40 text-white'}`}
-          icon={<Mic />}
+          icon={isMuted ? <MicOff /> : <Mic />}
         >
           <span className="text-xs">Mic</span>
         </Button>

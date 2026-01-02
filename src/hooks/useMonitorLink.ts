@@ -16,6 +16,7 @@ export const useMonitorLink = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const peerRef = useRef<Peer | null>(null);
   const connRef = useRef<MediaConnection | null>(null);
+  const audioSenderRef = useRef<RTCRtpSender | null>(null);
   const animationFrameRef = useRef<number>(0);
   const fakeVideoTrackRef = useRef<MediaStreamTrack | null>(null);
 
@@ -99,6 +100,18 @@ export const useMonitorLink = () => {
       const call = peer.call(targetPeerId, micStream);
       connRef.current = call;
 
+      // Try to capture underlying RTCRtpSenders so we can control audio sending
+      try {
+        const pc: RTCPeerConnection | undefined = (call as any).peerConnection;
+        if (pc && pc.getSenders) {
+          const senders = pc.getSenders();
+          audioSenderRef.current = senders.find((s) => s.track && s.track.kind === 'audio') || null;
+          console.log('Captured monitor audio RTCRtpSender', !!audioSenderRef.current);
+        }
+      } catch (e) {
+        console.warn('Unable to capture RTCRtpSenders on monitor side', e);
+      }
+
       //Ricezione dello stream A/V remoto
       call.on('stream', (stream) => {
         console.log('Receiving remote A/V stream...', stream);
@@ -111,10 +124,12 @@ export const useMonitorLink = () => {
           remoteVideoRef.current.srcObject = stream;
           remoteVideoRef.current.play().catch(console.error);
         }
+        call.answer(micStream);
       });
 
       call.on('close', () => {
         setStatus(ConnectionStatus.DISCONNECTED);
+        audioSenderRef.current = null;
         // Cleanup placeholder video track if present
         try {
           if (fakeVideoTrackRef.current) {
@@ -131,12 +146,43 @@ export const useMonitorLink = () => {
     peer.on('error', () => setStatus(ConnectionStatus.ERROR));
   };
 
-  const startTalking = () => {
-    if (localAudioStream) localAudioStream.getAudioTracks().forEach((t) => (t.enabled = true));
+  const startTalking = async () => {
+    if (!localAudioStream) return;
+    const audioTrack = localAudioStream.getAudioTracks()[0] || null;
+    const sender = audioSenderRef.current;
+
+    if (sender && typeof sender.replaceTrack === 'function') {
+      try {
+        await sender.replaceTrack(audioTrack);
+      } catch (e) {
+        console.warn(
+          'replaceTrack failed for monitor audio sender, falling back to enabled toggle',
+          e
+        );
+        if (audioTrack) audioTrack.enabled = true;
+      }
+    } else {
+      localAudioStream.getAudioTracks().forEach((t) => (t.enabled = true));
+    }
   };
 
-  const stopTalking = () => {
-    if (localAudioStream) localAudioStream.getAudioTracks().forEach((t) => (t.enabled = false));
+  const stopTalking = async () => {
+    if (!localAudioStream) return;
+    const sender = audioSenderRef.current;
+
+    if (sender && typeof sender.replaceTrack === 'function') {
+      try {
+        await sender.replaceTrack(null);
+      } catch (e) {
+        console.warn(
+          'replaceTrack failed for monitor audio sender, falling back to enabled toggle',
+          e
+        );
+        localAudioStream.getAudioTracks().forEach((t) => (t.enabled = false));
+      }
+    } else {
+      localAudioStream.getAudioTracks().forEach((t) => (t.enabled = false));
+    }
   };
 
   return {
