@@ -17,6 +17,8 @@ export const useCameraLink = () => {
   const connectionRef = useRef<MediaConnection | null>(null);
   const audioSenderRef = useRef<RTCRtpSender | null>(null);
   const videoSenderRef = useRef<RTCRtpSender | null>(null);
+  const remoteAudioStreamRef = useRef<MediaStream | null>(null);
+  const trackStateCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let localStream: MediaStream;
@@ -24,8 +26,6 @@ export const useCameraLink = () => {
 
     const init = async () => {
       try {
-        console.log('Gathering media devices...', await navigator.mediaDevices.enumerateDevices());
-
         // On native wrappers (Capacitor) we should explicitly request runtime permissions
         // before calling getUserMedia so the WebView has the required access.
         const allowed = await ensureAVPermissions();
@@ -53,18 +53,14 @@ export const useCameraLink = () => {
         peerRef.current = peer;
 
         peer.on('open', (id) => {
-          console.log(`Created peer id: ${id}`);
           setPeerId(id);
           setStatus(ConnectionStatus.WAITING_FOR_PEER);
         });
 
         peer.on('call', (conn) => {
-          console.log(`Recevived call from monitor device: ${conn.peer}`);
           setStatus(ConnectionStatus.CONNECTING);
 
           // Rispondiamo con lo stream A/V completo
-          console.log('Sending stream response...', localStream);
-
           conn.answer(localStream);
           connectionRef.current = conn;
 
@@ -77,20 +73,119 @@ export const useCameraLink = () => {
                 senders.find((s) => s.track && s.track.kind === 'audio') || null;
               videoSenderRef.current =
                 senders.find((s) => s.track && s.track.kind === 'video') || null;
-              console.log('Captured RTCRtpSenders', {
-                audio: !!audioSenderRef.current,
-                video: !!videoSenderRef.current,
-              });
             }
           } catch (e) {
             console.warn('Unable to capture RTCRtpSenders', e);
           }
 
           conn.on('stream', (remoteStream) => {
-            console.log('Receiving mic remote stream...', remoteStream);
+            // Salva lo stream per riferimento futuro
+            remoteAudioStreamRef.current = remoteStream;
+
             if (incomingAudioRef.current) {
-              incomingAudioRef.current.srcObject = remoteStream;
-              incomingAudioRef.current.play().catch(console.error);
+              const audioElement = incomingAudioRef.current;
+
+              // Pulisci solo lo srcObject, NON fermare i track (gestiti da PeerJS)
+              if (audioElement.srcObject) {
+                audioElement.srcObject = null;
+              }
+
+              // Imposta il nuovo stream
+              audioElement.srcObject = remoteStream;
+
+              // Assicurati che l'elemento audio sia configurato correttamente
+              audioElement.volume = 1.0;
+              audioElement.muted = false;
+
+              // Gestisci il play in modo sicuro
+              const handlePlay = async () => {
+                try {
+                  await audioElement.play();
+                } catch (error: any) {
+                  if (error.name !== 'AbortError') {
+                    console.warn('Error playing incoming audio:', error);
+                    // Prova di nuovo dopo un breve delay
+                    setTimeout(() => {
+                      audioElement.play().catch(console.error);
+                    }, 100);
+                  }
+                }
+              };
+
+              // Listener per quando vengono aggiunti nuovi track allo stream
+              const handleTrackAdded = (event: MediaStreamTrackEvent) => {
+                const track = event.track;
+                if (track.kind === 'audio') {
+                  handlePlay();
+                }
+              };
+
+              // Listener per quando i track cambiano stato
+              const handleTrackEnabled = () => {
+                const audioTracks = remoteStream.getAudioTracks();
+                const enabledTracks = audioTracks.filter((t) => t.enabled);
+                if (enabledTracks.length > 0) {
+                  handlePlay();
+                }
+              };
+
+              // Aggiungi listener per i nuovi track
+              remoteStream.addEventListener('addtrack', handleTrackAdded);
+
+              // Monitora i track esistenti per cambiamenti di stato
+              // Usa un polling più frequente per verificare quando i track vengono abilitati
+              let lastEnabledState = remoteStream.getAudioTracks().map((t) => t.enabled);
+
+              // Pulisci l'interval precedente se esiste
+              if (trackStateCheckIntervalRef.current) {
+                clearInterval(trackStateCheckIntervalRef.current);
+              }
+
+              trackStateCheckIntervalRef.current = setInterval(() => {
+                const audioTracks = remoteStream.getAudioTracks();
+                const currentEnabledState = audioTracks.map((t) => t.enabled);
+                const hasNewEnabledTrack = currentEnabledState.some(
+                  (enabled, index) => enabled && !lastEnabledState[index]
+                );
+                const hasEnabledTracks = audioTracks.some((t) => t.enabled);
+
+                if (hasNewEnabledTrack) {
+                  // Prova a riprodurre più volte per assicurarsi che funzioni
+                  handlePlay();
+                  setTimeout(handlePlay, 100);
+                  setTimeout(handlePlay, 300);
+                }
+
+                // Verifica anche lo stato dell'elemento audio
+                if (audioElement.paused && hasEnabledTracks) {
+                  handlePlay();
+                }
+
+                lastEnabledState = currentEnabledState;
+              }, 100); // Polling più frequente (ogni 100ms invece di 200ms)
+
+              // Prova a fare play quando l'audio è pronto
+              if (audioElement.readyState >= HTMLMediaElement.HAVE_METADATA) {
+                handlePlay();
+              } else {
+                const onLoadedMetadata = () => {
+                  handlePlay();
+                  audioElement.removeEventListener('loadedmetadata', onLoadedMetadata);
+                };
+                audioElement.addEventListener('loadedmetadata', onLoadedMetadata);
+              }
+
+              // Prova anche quando l'audio può essere riprodotto
+              const onCanPlay = () => {
+                handlePlay();
+                audioElement.removeEventListener('canplay', onCanPlay);
+              };
+              audioElement.addEventListener('canplay', onCanPlay);
+
+              // Listener per quando l'audio inizia effettivamente a riprodurre
+              audioElement.addEventListener('playing', () => {
+                // Audio is playing successfully
+              });
             }
           });
 
@@ -98,6 +193,15 @@ export const useCameraLink = () => {
             setStatus(ConnectionStatus.DISCONNECTED);
             audioSenderRef.current = null;
             videoSenderRef.current = null;
+
+            // Pulisci l'interval di monitoraggio dei track
+            if (trackStateCheckIntervalRef.current) {
+              clearInterval(trackStateCheckIntervalRef.current);
+              trackStateCheckIntervalRef.current = null;
+            }
+
+            // Pulisci lo stream remoto
+            remoteAudioStreamRef.current = null;
           });
           setTimeout(() => setStatus(ConnectionStatus.CONNECTED), 1000);
         });

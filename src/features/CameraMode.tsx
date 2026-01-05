@@ -27,7 +27,7 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
   return (
     <div className="relative flex h-full bg-black">
       {/* <LoadingOverlay status={status} onRetry={restart} /> */}
-      <audio ref={incomingAudioRef} autoPlay playsInline />
+      <audio ref={incomingAudioRef} autoPlay playsInline volume={1.0} style={{ display: 'none' }} />
 
       {isEcoMode && (
         <div
