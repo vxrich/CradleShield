@@ -1,18 +1,18 @@
+import { Camera, Monitor } from 'lucide-react';
 import React, { useState } from 'react';
 import { AppMode } from '../types';
+import { Button } from './components';
 import { CameraMode } from './features/CameraMode';
 import { MonitorMode } from './features/MonitorMode';
-import { Button } from './components/Button';
-import { Camera, Monitor, ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<AppMode>(AppMode.SELECTION);
 
   const SelectionScreen = () => (
-    <div className="bg-dark-900 animate-in fade-in zoom-in flex min-h-screen flex-col items-center justify-center p-6 duration-500">
+    <div className="bg-dark-900 animate-in fade-in zoom-in flex h-full flex-col items-center justify-center p-6 duration-500">
       <div className="mb-12 text-center">
-        <div className="bg-brand-500/10 text-brand-500 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl">
-          <ShieldCheck size={40} />
+        <div className="bg-brand-500/10 text-brand-500 mx-auto mb-6 flex items-center justify-center rounded-3xl">
+          <img src="/favicon.png" alt="BabyGuard Icon" className="size-36" />
         </div>
         <h1 className="mb-2 text-4xl font-black tracking-tight text-white">
           Baby<span className="text-brand-500">Guard</span>
@@ -53,7 +53,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="selection:bg-brand-500/30 h-[100dvh] w-full overflow-hidden font-sans text-white antialiased">
+    <div className="selection:bg-brand-500/30 h-dvh w-full overflow-hidden font-sans text-white antialiased">
       {mode === AppMode.SELECTION && <SelectionScreen />}
       {mode === AppMode.CAMERA && <CameraMode onBack={() => setMode(AppMode.SELECTION)} />}
       {mode === AppMode.MONITOR && <MonitorMode onBack={() => setMode(AppMode.SELECTION)} />}
