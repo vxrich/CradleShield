@@ -1,6 +1,7 @@
 import { ArrowLeft, Eye, EyeOff, Mic, Moon, Volume2, VolumeX } from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '../index';
+import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import './controls.css';
 
 interface MonitorControlsProps {
@@ -26,6 +27,7 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
   startTalking,
   stopTalking,
 }) => {
+  const { isLandscape } = useDeviceOrientation();
   const [isTalking, setIsTalking] = useState(false);
 
   const handleTalkStart = () => {
@@ -39,7 +41,7 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
 
   return (
     <div
-      className={`glass3d mx-auto w-full max-w-2xl rounded-t-3xl p-6 pb-8 ${dimMode ? 'opacity-20' : ''}`}
+      className={`glass3d ${isLandscape ? 'controls-vertical' : ''} ${dimMode ? 'opacity-20' : ''}`}
     >
       <Button
         onMouseDown={handleTalkStart}
@@ -52,17 +54,19 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
       >
         {isTalking ? 'Talking...' : 'Hold to Talk'}
       </Button>
-      <div className="grid grid-cols-4 gap-4">
+      <div className={`controls-grid ${isLandscape ? '' : 'grid grid-cols-4 gap-4'}`}>
         <Button
           onClick={onBack}
           icon={<ArrowLeft />}
           className="flex-col bg-slate-800/40 p-3 text-white"
+          fullWidth={isLandscape}
         >
           <span className="text-xs">Back</span>
         </Button>
         <Button
           onClick={onToggleNightVision}
           className={`flex-col p-3 ${isNightVision ? 'bg-brand-500 text-white' : 'bg-slate-800/40 text-white'}`}
+          fullWidth={isLandscape}
           icon={isNightVision ? <Eye /> : <EyeOff />}
         >
           <span className="text-xs">Night vision</span>
@@ -70,6 +74,7 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
         <Button
           onClick={onToggleMute}
           className={`flex-col p-3 ${isMuted ? 'bg-brand-500 text-white' : 'bg-slate-800/40 text-white'}`}
+          fullWidth={isLandscape}
           icon={isMuted ? <VolumeX /> : <Volume2 />}
         >
           <span className="text-xs">Mute</span>
@@ -77,6 +82,7 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
         <Button
           onClick={onToggleDimMode}
           className={`flex-col p-3 ${dimMode ? 'bg-brand-500 text-white' : 'bg-slate-800/40 text-white'}`}
+          fullWidth={isLandscape}
           icon={<Moon />}
         >
           <span className="text-xs">Dim mode</span>
