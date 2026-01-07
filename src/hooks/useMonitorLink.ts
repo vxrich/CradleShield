@@ -20,6 +20,46 @@ export const useMonitorLink = () => {
   const animationFrameRef = useRef<number>(0);
   const fakeVideoTrackRef = useRef<MediaStreamTrack | null>(null);
 
+  // Gestisci il cambio di remoteStream con un useEffect dedicato
+  useEffect(() => {
+    if (!remoteStream || !remoteVideoRef.current) return;
+
+    const videoElement = remoteVideoRef.current;
+
+    // Imposta lo stream
+    videoElement.srcObject = remoteStream;
+
+    // Gestisci il play in modo sicuro
+    const handlePlay = async () => {
+      try {
+        await videoElement.play();
+      } catch (error: any) {
+        // AbortError è normale quando viene interrotto da un nuovo load
+        if (error.name !== 'AbortError') {
+          console.warn('Error playing remote video:', error);
+        }
+      }
+    };
+
+    // Prova a fare play quando il video è pronto
+    if (videoElement.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      handlePlay();
+    } else {
+      const onLoadedMetadata = () => {
+        handlePlay();
+        videoElement.removeEventListener('loadedmetadata', onLoadedMetadata);
+      };
+      videoElement.addEventListener('loadedmetadata', onLoadedMetadata);
+    }
+
+    // Cleanup: rimuovi solo lo srcObject, non fermare i track (gestiti da PeerJS)
+    return () => {
+      if (videoElement.srcObject) {
+        videoElement.srcObject = null;
+      }
+    };
+  }, [remoteStream]);
+
   useEffect(() => {
     let scanStream: MediaStream;
     const startScanning = async () => {
@@ -61,79 +101,101 @@ export const useMonitorLink = () => {
     setStatus(ConnectionStatus.CONNECTING);
     requestWakeLock();
 
+    // Crea lo stream audio locale (solo per il monitor, non per la chiamata)
     let micStream: MediaStream;
     try {
-      console.log('Gathering media devices...', await navigator.mediaDevices.enumerateDevices());
-
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStream.getAudioTracks().forEach((track) => (track.enabled = false));
       setLocalAudioStream(micStream);
     } catch (e) {
+      console.warn('Failed to get microphone stream', e);
       micStream = new MediaStream();
+      setLocalAudioStream(micStream);
     }
 
     const peer = new Peer(PEER_CONFIG);
     peerRef.current = peer;
 
-    peer.on('open', () => {
-      // If there is no video track, add a tiny enabled placeholder so the SDP includes a video m-line.
+    peer.on('open', async () => {
+      // Crea uno stream separato per la chiamata WebRTC
+      // Questo stream contiene solo l'audio (e un fake video se necessario)
+      const callStream = new MediaStream();
 
-      if (micStream.getVideoTracks().length === 0) {
+      // Aggiungi l'audio track allo stream della chiamata
+      const audioTracks = micStream.getAudioTracks();
+      if (audioTracks.length > 0) {
+        audioTracks.forEach((track) => {
+          callStream.addTrack(track);
+        });
+      }
+
+      // Aggiungi un fake video track solo se necessario per la negoziazione SDP
+      // Questo è necessario per alcuni browser che richiedono una m-line video nell'SDP
+      if (callStream.getVideoTracks().length === 0) {
         try {
           const canvas = document.createElement('canvas') as HTMLCanvasElement;
           canvas.width = 1;
           canvas.height = 1;
-          const fakeStream = canvas.captureStream();
+          const fakeStream = canvas.captureStream(0); // 0 fps per minimizzare overhead
           const [fakeVideoTrack] = fakeStream.getVideoTracks();
           if (fakeVideoTrack) {
-            // Keep the track enabled to improve negotiation reliability across browsers
             fakeVideoTrack.enabled = true;
-            micStream.addTrack(fakeVideoTrack);
+            callStream.addTrack(fakeVideoTrack);
             fakeVideoTrackRef.current = fakeVideoTrack;
-            console.log('Added placeholder video track to outgoing stream', fakeVideoTrack);
           }
         } catch (e) {
           console.warn('Unable to create placeholder video track', e);
         }
       }
 
-      const call = peer.call(targetPeerId, micStream);
+      const call = peer.call(targetPeerId, callStream);
       connRef.current = call;
 
-      // Try to capture underlying RTCRtpSenders so we can control audio sending
-      try {
-        const pc: RTCPeerConnection | undefined = (call as any).peerConnection;
-        if (pc && pc.getSenders) {
-          const senders = pc.getSenders();
-          audioSenderRef.current = senders.find((s) => s.track && s.track.kind === 'audio') || null;
-          console.log('Captured monitor audio RTCRtpSender', !!audioSenderRef.current);
+      // Cattura i RTCRtpSenders per controllare l'invio dell'audio
+      // Aspetta che la connessione sia stabilita prima di catturare i senders
+      const captureSenders = async () => {
+        try {
+          const pc: RTCPeerConnection | undefined = (call as any).peerConnection;
+          if (pc && pc.getSenders) {
+            const senders = pc.getSenders();
+            audioSenderRef.current =
+              senders.find((s) => s.track && s.track.kind === 'audio') || null;
+
+            // Disabilita il track inizialmente (non vogliamo inviare finché non si preme "Hold to Talk")
+            if (audioTracks.length > 0) {
+              audioTracks.forEach((track) => {
+                track.enabled = false;
+              });
+            }
+          }
+        } catch (e) {
+          console.warn('Unable to capture RTCRtpSenders on monitor side', e);
         }
-      } catch (e) {
-        console.warn('Unable to capture RTCRtpSenders on monitor side', e);
-      }
+      };
 
-      //Ricezione dello stream A/V remoto
-      call.on('stream', (stream) => {
-        console.log('Receiving remote A/V stream...', stream);
-        console.log('Remote video tracks:', stream.getVideoTracks());
-        console.log('Remote audio tracks:', stream.getAudioTracks());
+      // Prova a catturare i senders immediatamente
+      captureSenders();
 
-        setRemoteStream(stream);
+      // Prova anche dopo un breve delay per assicurarsi che la connessione sia stabilita
+      setTimeout(captureSenders, 500);
+
+      // Ricezione dello stream A/V remoto dalla camera
+      call.on('stream', (remoteStream) => {
+        setRemoteStream(remoteStream);
         setStatus(ConnectionStatus.CONNECTED);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
-          remoteVideoRef.current.play().catch(console.error);
-        }
       });
 
       call.on('close', () => {
         setStatus(ConnectionStatus.DISCONNECTED);
         audioSenderRef.current = null;
-        // Cleanup placeholder video track if present
+
+        // Cleanup del fake video track
         try {
           if (fakeVideoTrackRef.current) {
             fakeVideoTrackRef.current.stop();
-            micStream.removeTrack(fakeVideoTrackRef.current);
+            if (callStream.getVideoTracks().includes(fakeVideoTrackRef.current)) {
+              callStream.removeTrack(fakeVideoTrackRef.current);
+            }
             fakeVideoTrackRef.current = null;
           }
         } catch (e) {
@@ -142,46 +204,56 @@ export const useMonitorLink = () => {
       });
     });
 
-    peer.on('error', () => setStatus(ConnectionStatus.ERROR));
+    peer.on('error', (err) => {
+      console.error('Peer error:', err);
+      setStatus(ConnectionStatus.ERROR);
+    });
   };
 
   const startTalking = async () => {
-    if (!localAudioStream) return;
+    if (!localAudioStream) {
+      console.warn('startTalking: localAudioStream is null');
+      return;
+    }
     const audioTrack = localAudioStream.getAudioTracks()[0] || null;
+    if (!audioTrack) {
+      console.warn('startTalking: no audio track found');
+      return;
+    }
+
     const sender = audioSenderRef.current;
+
+    // Abilita sempre il track
+    audioTrack.enabled = true;
 
     if (sender && typeof sender.replaceTrack === 'function') {
       try {
-        await sender.replaceTrack(audioTrack);
+        // Se il track non è nel sender, aggiungilo
+        if (sender.track !== audioTrack) {
+          await sender.replaceTrack(audioTrack);
+        }
       } catch (e) {
         console.warn(
-          'replaceTrack failed for monitor audio sender, falling back to enabled toggle',
+          'replaceTrack failed for monitor audio sender, track is enabled but may not be sending',
           e
         );
-        if (audioTrack) audioTrack.enabled = true;
       }
-    } else {
-      localAudioStream.getAudioTracks().forEach((t) => (t.enabled = true));
     }
   };
 
   const stopTalking = async () => {
-    if (!localAudioStream) return;
-    const sender = audioSenderRef.current;
-
-    if (sender && typeof sender.replaceTrack === 'function') {
-      try {
-        await sender.replaceTrack(null);
-      } catch (e) {
-        console.warn(
-          'replaceTrack failed for monitor audio sender, falling back to enabled toggle',
-          e
-        );
-        localAudioStream.getAudioTracks().forEach((t) => (t.enabled = false));
-      }
-    } else {
-      localAudioStream.getAudioTracks().forEach((t) => (t.enabled = false));
+    if (!localAudioStream) {
+      console.warn('stopTalking: localAudioStream is null');
+      return;
     }
+    const audioTrack = localAudioStream.getAudioTracks()[0] || null;
+    if (!audioTrack) {
+      console.warn('stopTalking: no audio track found');
+      return;
+    }
+
+    // Disabilita il track per fermare l'invio
+    audioTrack.enabled = false;
   };
 
   return {
