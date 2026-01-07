@@ -1,7 +1,15 @@
-# BabyGuard 🚼🔒
+<div align="center">
+
+# 🚼 BabyGuard 🔒
+
+<img src="resources/icon-only.png" alt="BabyGuard Icon" width="80" height="80">
 
 **Secure P2P Baby Monitor** — Un'app web che crea una connessione diretta peer-to-peer (WebRTC) tra
 due dispositivi per monitorare un bambino senza server, registrazioni o iscrizioni.
+
+[![Download APK](https://img.shields.io/badge/Download-APK-brightgreen?style=for-the-badge)](https://github.com/vxrich/BabyGuard/android/app/build/outputs/apk/debug/babyguard.apk)
+
+</div>
 
 ---
 
@@ -29,55 +37,69 @@ due dispositivi per monitorare un bambino senza server, registrazioni o iscrizio
 
 ---
 
-## 🚀 Avvio rapido
+## 📋 Requisiti di Sistema
 
-Prerequisiti: Node >= 18, npm o pnpm.
+### Per lo sviluppo:
 
-Installazione e sviluppo:
+- **Node.js** >= 22.12.0
+- **npm** >= 9.0.0 o **pnpm** >= 8.0.0
+- **Git** (opzionale, per clonare il repository)
 
-```bash
-npm install
-npm run dev
-# Apri http://localhost:5173
-```
+### Per l'utilizzo come app web:
 
-Build per produzione:
+- Browser moderno con supporto WebRTC:
+  - **Chrome/Edge** >= 90
+  - **Firefox** >= 88
+  - **Safari** >= 14 (iOS 14+)
+- Connessione HTTPS o localhost (richiesto per WebRTC)
+- Permessi per **Camera** e **Microfono**
 
-```bash
-npm run build
-npm run preview
-```
+### Per l'utilizzo come app Android:
+
+- **Android** >= 7.0 (API level 24)
+- Permessi Camera e Microfono abilitati
 
 ---
 
-## 📱 Esecuzione in Capacitor (opzionale)
+## 🚀 Avvio rapido
 
-Capacitor per impostazione predefinita carica le risorse web locali (il contenuto di `dist`). Questo
-significa che l'app wrapper non punta a un URL remoto ma serve i file locali della build.
-
-- Per iniziare (installare Capacitor CLI e core):
+### Installazione e sviluppo locale:
 
 ```bash
-npm install
-npm install --save-dev @capacitor/cli
-npm install @capacitor/core
-npx cap init "BabyGuard" com.secure.p2p.babyguard --web-dir=dist
+# Clona il repository (se non l'hai già fatto)
+git clone https://github.com/yourusername/BabyGuard.git
+cd BabyGuard
+
+# Installa le dipendenze
+yarn
+
+# Avvia il server di sviluppo
+yarn dev
+
+# Apri http://localhost:5173 nel browser
 ```
 
-- Copia le risorse web nella piattaforma nativa e aprila:
+### Build per produzione:
 
 ```bash
-npm run build
-npm run cap:copy
-npm run cap:open:android
-# oppure
-npm run cap:open:ios
+# Crea la build di produzione
+yarn build
+
+# Anteprima della build
+yarn preview
 ```
 
-- Se vuoi che la WebView punti al server di sviluppo (live reload) durante lo sviluppo, imposta
-  `server.url` nella `capacitor.config` o usa `npx cap copy` insieme a Vite dev server. Per una app
-  destinata alla produzione, **non** impostare `server.url` e lascia che Capacitor serva i file da
-  `dist`.
+### Download e installazione APK Android:
+
+1. **Scarica l'APK** dall'ultima
+   [release](https://github.com/yourusername/BabyGuard/releases/latest)
+   - Oppure clicca sul badge "Download APK" in alto
+2. Sul tuo dispositivo Android:
+   - Vai su **Impostazioni** > **Sicurezza**
+   - Abilita **Origini sconosciute** o **Installa app sconosciute**
+   - Apri il file APK scaricato
+   - Segui le istruzioni di installazione
+3. Dopo l'installazione, concedi i permessi per Camera e Microfono quando richiesto
 
 ---
 
@@ -157,6 +179,62 @@ Note:
 
 ---
 
+## ⚠️ Disclaimer e Responsabilità
+
+**IMPORTANTE - LEGGI ATTENTAMENTE PRIMA DELL'UTILIZZO**
+
+### Utilizzo Responsabile
+
+BabyGuard è uno strumento progettato per **monitorare bambini in modo sicuro e responsabile**.
+L'utilizzo di questa applicazione è a **vostro rischio e pericolo**.
+
+### Limitazioni e Avvertenze
+
+1. **Non sostituisce la supervisione diretta**: Questa app è un **ausilio** per la supervisione, non
+   un sostituto della presenza fisica e dell'attenzione diretta di un adulto responsabile.
+
+2. **Responsabilità dell'utente**: L'utente è **completamente responsabile** per:
+   - L'utilizzo appropriato dell'applicazione
+   - La sicurezza e il benessere del bambino monitorato
+   - La protezione dei dispositivi e delle credenziali di accesso
+   - La conformità alle leggi locali riguardanti la privacy e la sorveglianza
+
+3. **Nessuna garanzia**: L'applicazione viene fornita "così com'è", senza garanzie di alcun tipo,
+   esplicite o implicite, incluse ma non limitate a:
+   - Disponibilità continua del servizio
+   - Assenza di interruzioni o errori
+   - Sicurezza assoluta della connessione
+   - Accuratezza delle funzionalità
+
+4. **Utilizzo improprio**: È **vietato** utilizzare questa applicazione per:
+   - Monitorare persone senza il loro consenso esplicito
+   - Scopi illegali o non etici
+   - Violare la privacy di terzi
+   - Qualsiasi attività che violi le leggi locali o internazionali
+
+5. **Limitazione di responsabilità**: Gli sviluppatori e i contributori di BabyGuard **non sono
+   responsabili** per:
+   - Danni diretti, indiretti, incidentali o consequenziali derivanti dall'uso dell'applicazione
+   - Perdita di dati, interruzioni di servizio o malfunzionamenti
+   - Incidenti o problemi di sicurezza derivanti dall'uso improprio
+   - Violazioni della privacy causate da configurazioni errate o utilizzo non autorizzato
+
+6. **Sicurezza della rete**: Sebbene l'app utilizzi connessioni P2P sicure, l'utente è responsabile
+   di:
+   - Utilizzare reti sicure e affidabili
+   - Proteggere i dispositivi da accessi non autorizzati
+   - Mantenere aggiornati i dispositivi e l'applicazione
+
+### Consenso all'utilizzo
+
+Utilizzando BabyGuard, l'utente **accetta e riconosce** di aver letto, compreso e accettato questo
+disclaimer. Se non sei d'accordo con questi termini, **non utilizzare questa applicazione**.
+
+**Per domande o dubbi sull'utilizzo responsabile, consulta un professionista qualificato prima
+dell'installazione.**
+
+---
+
 ## 🧩 Struttura del progetto (principale)
 
 - `src/` — codice frontend React + Typescript
@@ -178,16 +256,52 @@ Note:
 
 ## 📄 Licenza
 
-Nessuna licenza specificata (consiglio: aggiungi `MIT` se vuoi rendere il progetto open source).
+Questo progetto è rilasciato sotto licenza **MIT**. Vedi il file `LICENSE` per i dettagli completi.
 
 ---
 
-## Contatti / Crediti
+## 🤝 Contribuire
 
-Progetto originale: **Secure P2P Baby Monitor**.
+Siamo aperti a contributi! Per contribuire:
 
-Per domande o suggerimenti apri un issue o invia una PR.
+1. Fai un fork del progetto
+2. Crea un branch per la tua feature (`git checkout -b feat/AmazingFeature`)
+3. Committa le tue modifiche (`git commit -m 'chore: some AmazingFeature'`)
+4. Pusha al branch (`git push origin feat/AmazingFeature`)
+5. Apri una Pull Request
+
+### Linee guida per i contributi:
+
+- Mantieni lo stile di codice esistente (Prettier + ESLint configurati)
+- Scrivi una descrizione chiara delle modifiche
+- Aggiungi test se applicabile
+- Aggiorna la documentazione se necessario
 
 ---
 
-Buon testing! ✅
+## 📞 Contatti / Supporto
+
+- **Issues**: Per bug o richieste di funzionalità, apri un
+  [issue](https://github.com/yourusername/BabyGuard/issues)
+- **Discussions**: Per domande generali, usa le
+  [Discussions](https://github.com/yourusername/BabyGuard/discussions)
+- **Security**: Per segnalare vulnerabilità di sicurezza, contatta direttamente i maintainer
+
+---
+
+## 🙏 Ringraziamenti
+
+Progetto originale: **Secure P2P Baby Monitor**
+
+Sviluppato con ❤️ per la sicurezza e il benessere dei bambini.
+
+---
+
+<div align="center">
+
+**⚠️ Ricorda: BabyGuard è un ausilio, non un sostituto della supervisione diretta di un adulto
+responsabile.**
+
+**Buon utilizzo responsabile! ✅**
+
+</div>

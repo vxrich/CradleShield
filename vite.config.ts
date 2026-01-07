@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       allowedHosts: ['.ngrok-free.app', 'localhost'],
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), mkcert()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

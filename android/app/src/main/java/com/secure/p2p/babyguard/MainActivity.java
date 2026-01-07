@@ -1,4 +1,4 @@
-package com.secure.p2p.babyguard;
+package com.vxrich.babyguard;
 
 import com.getcapacitor.BridgeActivity;
 

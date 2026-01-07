@@ -29,11 +29,11 @@ export const CameraControls: React.FC<CameraControlsProps> = ({
   const { isLandscape } = useDeviceOrientation();
 
   return (
-    <div className={`glass3d ${isLandscape ? 'controls-vertical' : ''}`}>
+    <div className={`glass3d ${isLandscape ? 'controls-vertical' : 'mx-auto'}`}>
       <div
         className={`controls-header flex items-center justify-between ${isLandscape ? '' : 'mb-6'}`}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pb-2">
           <div
             className={`h-3 w-3 rounded-full ${status === ConnectionStatus.CONNECTED ? 'animate-pulse bg-green-500' : 'bg-yellow-500'}`}
           />

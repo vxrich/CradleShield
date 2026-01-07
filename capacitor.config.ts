@@ -1,13 +1,9 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.secure.p2p.babyguard',
+  appId: 'com.vxrich.babyguard',
   appName: 'BabyGuard',
   webDir: 'dist',
-  server: {
-    url: ' https://7933b6f53d36.ngrok-free.app',
-    androidScheme: 'https',
-  },
   // NOTE: Do NOT set `server.url` here if you want the native wrapper to
   // load built local files from `dist` (production mode). During development
   // you can set `server.url` to your Vite dev server (e.g. "http://10.0.0.1:5173")

@@ -41,7 +41,7 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
 
   return (
     <div
-      className={`glass3d ${isLandscape ? 'controls-vertical' : ''} ${dimMode ? 'opacity-20' : ''}`}
+      className={`glass3d ${isLandscape ? 'controls-vertical' : 'mx-auto'} ${dimMode ? 'opacity-20' : ''}`}
     >
       <Button
         onMouseDown={handleTalkStart}
@@ -50,9 +50,9 @@ export const MonitorControls: React.FC<MonitorControlsProps> = ({
         onTouchEnd={handleTalkEnd}
         className={`mb-2 bg-slate-800/40 p-3 text-white ${isTalking ? '' : ''}`}
         fullWidth
-        icon={<Mic />}
+        icon={<Mic color={isTalking ? 'red' : 'white'} />}
       >
-        {isTalking ? 'Talking...' : 'Hold to Talk'}
+        {isLandscape ? '' : isTalking ? 'Talking...' : 'Hold to Talk'}
       </Button>
       <div className={`controls-grid ${isLandscape ? '' : 'grid grid-cols-4 gap-4'}`}>
         <Button

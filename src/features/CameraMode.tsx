@@ -68,16 +68,18 @@ export const CameraMode: React.FC<CameraModeProps> = ({ onBack }) => {
         )}
       </div>
 
-      <CameraControls
-        status={status}
-        isMuted={isMuted}
-        isVideoEnabled={isVideoEnabled}
-        onToggleMute={toggleMute}
-        onToggleVideo={toggleVideo}
-        onRestart={restart}
-        onBack={onBack}
-        onEcoModeToggle={() => setIsEcoMode(true)}
-      />
+      {status === ConnectionStatus.CONNECTED && (
+        <CameraControls
+          status={status}
+          isMuted={isMuted}
+          isVideoEnabled={isVideoEnabled}
+          onToggleMute={toggleMute}
+          onToggleVideo={toggleVideo}
+          onRestart={restart}
+          onBack={onBack}
+          onEcoModeToggle={() => setIsEcoMode(true)}
+        />
+      )}
 
       {status === ConnectionStatus.WAITING_FOR_PEER && (
         <div className="glass3d mx-auto p-6 text-center">

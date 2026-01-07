@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">BabyGuard</string>
     <string name="title_activity_main">BabyGuard</string>
-    <string name="package_name">com.secure.p2p.babyguard</string>
-    <string name="custom_url_scheme">com.secure.p2p.babyguard</string>
+    <string name="package_name">com.vxrich.babyguard</string>
+    <string name="custom_url_scheme">com.vxrich.babyguard</string>
 </resources>
