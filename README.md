@@ -7,7 +7,7 @@
 **Secure P2P Baby Monitor** — Un'app web che crea una connessione diretta peer-to-peer (WebRTC) tra
 due dispositivi per monitorare un bambino senza server, registrazioni o iscrizioni.
 
-[![Download APK](https://img.shields.io/badge/Download-APK-brightgreen?style=for-the-badge)](https://github.com/vxrich/BabyGuard/android/app/build/outputs/apk/debug/babyguard.apk)
+[![Download APK](https://img.shields.io/badge/Download-APK-brightgreen?style=for-the-badge)](https://github.com/vxrich/BabyGuard/babyguard.apk)
 
 </div>
 
