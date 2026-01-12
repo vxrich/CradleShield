@@ -12,10 +12,10 @@ const App: React.FC = () => {
     <div className="bg-dark-900 animate-in fade-in zoom-in flex h-full flex-col items-center justify-center p-6 duration-500">
       <div className="mb-12 text-center">
         <div className="bg-brand-500/10 text-brand-500 mx-auto mb-6 flex items-center justify-center rounded-3xl">
-          <img src="/favicon.png" alt="BabyGuard Icon" className="size-36" />
+          <img src="/favicon.png" alt="CradleShield Icon" className="size-36" />
         </div>
         <h1 className="mb-2 text-4xl font-black tracking-tight text-white">
-          Baby<span className="text-brand-500">Guard</span>
+          Cradle<span className="text-brand-500">Shield</span>
         </h1>
         <p className="text-lg text-slate-400">
           Secure, direct P2P connection. <br />

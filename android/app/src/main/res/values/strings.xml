@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">BabyGuard</string>
-    <string name="title_activity_main">BabyGuard</string>
+    <string name="app_name">CradleShield</string>
+    <string name="title_activity_main">CradleShield</string>
     <string name="package_name">com.vxrich.babyguard</string>
     <string name="custom_url_scheme">com.vxrich.babyguard</string>
 </resources>

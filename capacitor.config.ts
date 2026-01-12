@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.vxrich.babyguard',
-  appName: 'BabyGuard',
+  appName: 'CradleShield',
   webDir: 'dist',
   // NOTE: Do NOT set `server.url` here if you want the native wrapper to
   // load built local files from `dist` (production mode). During development

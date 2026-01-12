@@ -1,15 +1,30 @@
 <div align="center">
 
-# 🚼 BabyGuard 🔒
+# 🚼 CradleShield 🔒
 
-<img src="resources/icon-only.png" alt="BabyGuard Icon" width="80" height="80">
+<img src="resources/icon-only.png" alt="CradleShield Icon" width="80" height="80">
 
 **Secure P2P Baby Monitor** — Un'app web che crea una connessione diretta peer-to-peer (WebRTC) tra
 due dispositivi per monitorare un bambino senza server, registrazioni o iscrizioni.
 
-[![Download APK](https://img.shields.io/badge/Download-APK-brightgreen?style=for-the-badge)](https://github.com/vxrich/BabyGuard/babyguard.apk)
+[![Download APK](https://img.shields.io/badge/Download-APK-brightgreen?style=for-the-badge)](https://github.com/vxrich/CradleShield/cradleshield.apk)
 
 </div>
+
+---
+
+## 🛠️ Disclaimer: Project Genesis & Development
+
+Questo progetto è nato come **weekend project** per esplorare nuove implementazioni e prototipazione
+rapida.
+
+- **Scaffolding & Logica Iniziale:** La struttura base della repository e parte della logica core
+  sono state generate inizialmente con il supporto di **Google AI Studio**.
+- **Design & UI:** Il boilerplate grafico di partenza è stato assistito dall'intelligenza
+  artificiale per accelerare i tempi di prototipazione.
+- **Sviluppo Manuale:** Tutte le successive modifiche, il refactoring del codice, l'ottimizzazione
+  delle performance e le migliorie estetiche/funzionali sono state **curate e implementate
+  manualmente** per garantire la qualità e la coerenza del prodotto finale.
 
 ---
 
@@ -67,8 +82,8 @@ due dispositivi per monitorare un bambino senza server, registrazioni o iscrizio
 
 ```bash
 # Clona il repository (se non l'hai già fatto)
-git clone https://github.com/yourusername/BabyGuard.git
-cd BabyGuard
+git clone https://github.com/yourusername/CradleShield.git
+cd CradleShield
 
 # Installa le dipendenze
 yarn
@@ -92,7 +107,7 @@ yarn preview
 ### Download e installazione APK Android:
 
 1. **Scarica l'APK** dall'ultima
-   [release](https://github.com/yourusername/BabyGuard/releases/latest)
+   [release](https://github.com/yourusername/CradleShield/releases/latest)
    - Oppure clicca sul badge "Download APK" in alto
 2. Sul tuo dispositivo Android:
    - Vai su **Impostazioni** > **Sicurezza**
@@ -121,9 +136,9 @@ Per funzionare correttamente su dispositivi nativi, l'app richiede permessi **Ca
 
 ```xml
 <key>NSCameraUsageDescription</key>
-<string>BabyGuard needs access to the camera to scan QR codes and stream video.</string>
+<string>CradleShield needs access to the camera to scan QR codes and stream video.</string>
 <key>NSMicrophoneUsageDescription</key>
-<string>BabyGuard needs access to the microphone for audio streaming.</string>
+<string>CradleShield needs access to the microphone for audio streaming.</string>
 ```
 
 - **Runtime**: il codice dell'app ora chiama un helper che, su piattaforme native, prova a
@@ -185,7 +200,7 @@ Note:
 
 ### Utilizzo Responsabile
 
-BabyGuard è uno strumento progettato per **monitorare bambini in modo sicuro e responsabile**.
+CradleShield è uno strumento progettato per **monitorare bambini in modo sicuro e responsabile**.
 L'utilizzo di questa applicazione è a **vostro rischio e pericolo**.
 
 ### Limitazioni e Avvertenze
@@ -212,7 +227,7 @@ L'utilizzo di questa applicazione è a **vostro rischio e pericolo**.
    - Violare la privacy di terzi
    - Qualsiasi attività che violi le leggi locali o internazionali
 
-5. **Limitazione di responsabilità**: Gli sviluppatori e i contributori di BabyGuard **non sono
+5. **Limitazione di responsabilità**: Gli sviluppatori e i contributori di CradleShield **non sono
    responsabili** per:
    - Danni diretti, indiretti, incidentali o consequenziali derivanti dall'uso dell'applicazione
    - Perdita di dati, interruzioni di servizio o malfunzionamenti
@@ -227,8 +242,8 @@ L'utilizzo di questa applicazione è a **vostro rischio e pericolo**.
 
 ### Consenso all'utilizzo
 
-Utilizzando BabyGuard, l'utente **accetta e riconosce** di aver letto, compreso e accettato questo
-disclaimer. Se non sei d'accordo con questi termini, **non utilizzare questa applicazione**.
+Utilizzando CradleShield, l'utente **accetta e riconosce** di aver letto, compreso e accettato
+questo disclaimer. Se non sei d'accordo con questi termini, **non utilizzare questa applicazione**.
 
 **Per domande o dubbi sull'utilizzo responsabile, consulta un professionista qualificato prima
 dell'installazione.**
@@ -282,9 +297,9 @@ Siamo aperti a contributi! Per contribuire:
 ## 📞 Contatti / Supporto
 
 - **Issues**: Per bug o richieste di funzionalità, apri un
-  [issue](https://github.com/yourusername/BabyGuard/issues)
+  [issue](https://github.com/yourusername/CradleShield/issues)
 - **Discussions**: Per domande generali, usa le
-  [Discussions](https://github.com/yourusername/BabyGuard/discussions)
+  [Discussions](https://github.com/yourusername/CradleShield/discussions)
 - **Security**: Per segnalare vulnerabilità di sicurezza, contatta direttamente i maintainer
 
 ---
@@ -299,7 +314,7 @@ Sviluppato con ❤️ per la sicurezza e il benessere dei bambini.
 
 <div align="center">
 
-**⚠️ Ricorda: BabyGuard è un ausilio, non un sostituto della supervisione diretta di un adulto
+**⚠️ Ricorda: CradleShield è un ausilio, non un sostituto della supervisione diretta di un adulto
 responsabile.**
 
 **Buon utilizzo responsabile! ✅**

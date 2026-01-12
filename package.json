@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "cap:init": "npx cap init \"BabyGuard\" com.vxrich.babyguard --web-dir=dist",
+    "cap:init": "npx cap init \"CradleShield\" com.vxrich.cradleshield --web-dir=dist",
     "cap:copy": "npx cap copy",
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
